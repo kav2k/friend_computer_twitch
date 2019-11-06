@@ -1,0 +1,23 @@
+{
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "no-console": false,
+        "indent": [
+            true,
+            "spaces",
+            2
+        ],
+        "trailing-comma": false,
+        "max-line-length": false,
+        "max-classes-per-file": false,
+        "semicolon": true,
+        "object-literal-sort-keys": false
+    },
+    "rulesDirectory": [],
+    "exclude": [
+        "**/node_modules/**"
+    ]
+}
