@@ -136,6 +136,7 @@ async function onMessage(msg: PrivateMessage) {
               ((namingUser.customName === args) || (!namingUser.customName && !args))
             ) {
               queueUpdate("Name already reserved for:", nickname);
+              break;
             }
 
             if (args && args.length > 50) {
