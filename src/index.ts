@@ -145,7 +145,7 @@ async function onMessage(msg: PrivateMessage) {
               namingUser.reserved = true;
               namingUser.customName = args;
               userRepository.save(namingUser);
-              queueUpdate("Custom name reserved for:", nickname);
+              queueUpdate("Custom name reserved for:", `${nickname} "${args}"`);
             } else {
               namingUser.reserved = true;
               namingUser.customName = null;
