@@ -370,14 +370,11 @@ async function queueUpdate(update: string, nickname: string) {
 
   if (!queueInterval) {
     queueInterval = setInterval(outputQueue, QUEUE_INTERVAL);
-    console.log("Interval set");
     setImmediate(outputQueue);
   }
 }
 
 async function outputQueue() {
-  console.log(updates);
-
   if (updates.size) {
     const [update, usernames]: [string, string[]] = updates.entries().next().value;
     let lastIndex = 0;
@@ -407,7 +404,6 @@ async function outputQueue() {
   } else if (queueInterval) {
     clearInterval(queueInterval);
     queueInterval = undefined;
-    console.log("Interval cleared");
   }
 }
 
