@@ -1,3 +1,7 @@
+// Just a note: those are quick, dirty and incomplete typings made by hand for twitch-js.
+// If you're going to reuse them, do so at your own risk.
+// I wouldn't pick the same library again...
+
 declare module "twitch-js" {
   import * as EventEmitter from "eventemitter3";
   import { Consola } from "consola";
