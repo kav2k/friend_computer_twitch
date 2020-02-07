@@ -3,7 +3,12 @@ import { IParsedMessage } from "./interfaces";
 
 const COMMAND_REGEX = /^(\S+)(?:\s+(.+))?/;
 
-export const MAX_CUSTOM_LENGTH = 50;
+export const MAX_CUSTOM_LENGTH = 10;
+
+export const LEGAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyz" +
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + " 1234567890!?.,-\"“”'‘’/…♂♀";
+
+export const LEGAL_REGEX = new RegExp(`^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890!?.,\\-"“”'‘’/…♂♀]+$`);
 
 export function parseMessage(msg: PrivateMessage, prefix: string): IParsedMessage {
   const parsed: IParsedMessage = {
