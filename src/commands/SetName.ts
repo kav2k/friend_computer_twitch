@@ -20,6 +20,7 @@ export class SetNameCommand extends BaseCommand {
         user = userRepository.create({
           username: targetNickname.toLowerCase(),
           nickname: targetNickname,
+          eligible: true
         });
       }
 
