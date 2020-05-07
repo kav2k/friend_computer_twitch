@@ -1,0 +1,27 @@
+{
+  "type": "postgres",
+  "host": "<hostname>",
+  "port": 5678,
+  "username": "<username>",
+  "password": "<password>",
+  "database": "<database>",
+  "ssl": true,
+  "logging": false,
+  "entities": [
+    "db/entities/**/*.js",
+    "src/db/entities/**/*.ts"
+  ],
+  "migrations": [
+    "db/migrations/**/*.js",
+    "src/db/migrations/**/*.ts"
+  ],
+  "subscribers": [
+    "db/subscribers/**/*.js",
+    "src/db/subscribers/**/*.ts"
+  ],
+  "cli": {
+    "entitiesDir": "src/db/entities",
+    "migrationsDir": "src/db/migrations",
+    "subscribersDir": "src/db/subscribers"
+  }
+}
