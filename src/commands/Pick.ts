@@ -1,4 +1,4 @@
-import * as moment from "moment";
+import moment from "moment";
 import { PrivateMessage } from "twitch-js";
 import { Brackets } from "typeorm";
 import { ACTIVE_THRESHOLD } from "../bot";

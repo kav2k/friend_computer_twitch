@@ -10,6 +10,7 @@
     "strict": true,
 
     "resolveJsonModule": true,
+    "esModuleInterop": true,
 
     // TypeORM requirement
     "emitDecoratorMetadata": true,

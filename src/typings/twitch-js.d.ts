@@ -3,7 +3,7 @@
 // I wouldn't pick the same library again...
 
 declare module "twitch-js" {
-  import * as EventEmitter from "eventemitter3";
+  import EventEmitter from "eventemitter3";
   import { Consola } from "consola";
 
   export const enum ApiReadyState {

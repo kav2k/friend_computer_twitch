@@ -1,4 +1,4 @@
-import * as moment from "moment";
+import moment from "moment";
 import * as PM2 from "pm2";
 import TwitchJs, { Api, Chat, PrivateMessage } from "twitch-js";
 import { Connection, createConnection, getRepository } from "typeorm";
