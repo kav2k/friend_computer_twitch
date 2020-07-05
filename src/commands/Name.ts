@@ -5,6 +5,13 @@ import { BaseCommand } from "./BaseCommand";
 export class NameCommand extends BaseCommand {
   public readonly name = "name";
 
+  // public async run(msg: PrivateMessage): Promise<void> {
+  //   const { username, nickname, arg: customName } = this.parse(msg);
+
+  //   this.bot.queueUpdate("Naming system is currently disabled! Wait for the next stream series to start,", nickname);
+  //   return;
+  // }
+
   public async run(msg: PrivateMessage): Promise<void> {
     const userRepository = this.userRepository;
 
