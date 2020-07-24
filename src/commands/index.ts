@@ -8,3 +8,4 @@ export { SetNameCommand } from "./SetName";
 export { BanNameCommand } from "./BanName";
 export { UnBanNameCommand } from "./UnBanName";
 export { NameStatsCommand } from "./NameStats";
+export { AddPoolCommand } from "./AddPool";

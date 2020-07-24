@@ -1,4 +1,5 @@
-import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn, OneToMany } from "typeorm";
+import { Pick } from "./Pick";
 
 @Entity()
 export class User {
@@ -32,4 +33,7 @@ export class User {
 
   @Column({nullable: true, type: "varchar"})
   public customName!: string | null;
+
+  @OneToMany(type => Pick, pick => pick.user)
+  public picks!: Pick[];
 }

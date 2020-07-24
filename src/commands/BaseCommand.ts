@@ -4,6 +4,8 @@ import { Bot } from "../bot";
 import { User } from "../db/entities/User";
 import { ICommand, IParsedMessage } from "../interfaces";
 import { parseMessage } from "../utils";
+import { Pool } from "../db/entities/Pool";
+import { Pick } from "../db/entities/Pick";
 
 export abstract class BaseCommand implements ICommand {
   public abstract readonly name: string;
@@ -18,6 +20,14 @@ export abstract class BaseCommand implements ICommand {
 
   protected get userRepository() {
     return getRepository(User);
+  }
+
+  protected get poolRepository() {
+    return getRepository(Pool);
+  }
+
+  protected get pickRepository() {
+    return getRepository(Pick);
   }
 
   protected parse(msg: PrivateMessage): IParsedMessage {
