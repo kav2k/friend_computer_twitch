@@ -59,12 +59,12 @@ export class SetPickCommand extends BaseCommand {
         }
       } else {
         if (pool) {
-          await userRepository.save({
+          const newUser = await userRepository.save({
             username: targetNickname.toLowerCase(),
             nickname: targetNickname,
           });
           await pickRepository.save({
-            user: user,
+            user: newUser,
             pool: pool,
             pickedDate: msg.timestamp,
             pickedRemark: "Picked manually"
