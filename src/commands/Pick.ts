@@ -94,6 +94,7 @@ export class PickCommand extends BaseCommand {
         const candidates = await userRepository
           .createQueryBuilder("user")
           .where("user.eligible")
+          .andWhere("NOT user.picked")
           .andWhere(new Brackets((qb) => {
             qb.where("user.lastActive >= :cutoff", { cutoff })
               .orWhere("user.reserved");
