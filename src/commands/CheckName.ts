@@ -37,7 +37,7 @@ export class CheckNameCommand extends BaseCommand {
     } else if (user.reserved) {
       this.bot.queueUpdate("Name reserved for:", nickname);
     } else {
-      this.bot.queueUpdate("Eligible to be picked if active:", nickname);
+      this.bot.queueUpdate("Eligible to be picked if active (NOT reserved yet):", nickname);
     }
   }
 }
