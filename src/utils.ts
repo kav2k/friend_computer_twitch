@@ -3,7 +3,7 @@ import { IParsedMessage } from "./interfaces";
 
 const COMMAND_REGEX = /^(\S+)(?:\s+(.+))?/;
 
-export const MAX_CUSTOM_LENGTH = 10;
+export const MAX_CUSTOM_LENGTH = 27;
 
 export const LEGAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyz" +
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + " 1234567890!?.,-\"“”'‘’/…♂♀";
