@@ -16,7 +16,7 @@ export abstract class BaseCommand implements ICommand {
     this.bot = bot;
   }
 
-  public abstract async run(msg: PrivateMessage): Promise<void>;
+  public abstract run(msg: PrivateMessage): Promise<void>;
 
   protected get userRepository() {
     return getRepository(User);
