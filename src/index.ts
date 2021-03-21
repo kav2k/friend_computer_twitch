@@ -1,24 +1,24 @@
 import "reflect-metadata";
 import { Bot } from "./bot";
 import * as Commands from "./commands";
-import * as Config from "./config.json";
-
-const bot = new Bot(Config);
+import { loadConfig } from "./config";
 
 async function main() {
+    const bot = new Bot(await loadConfig());
+
     for (const ModuleConstructor of Object.values(Commands)) {
         bot.addPMCommand(new ModuleConstructor(bot));
     }
 
+    process.on("SIGINT", async () => {
+        bot.terminate("Interrupt signal");
+    });
+    
+    process.once("SIGTERM", async () => {
+        bot.terminate("Termination signal");
+    });    
+
     await bot.connect();
 }
-
-process.on("SIGINT", async () => {
-    bot.terminate("Interrupt signal");
-});
-
-process.once("SIGTERM", async () => {
-    bot.terminate("Termination signal");
-});
 
 main();

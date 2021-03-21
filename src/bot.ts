@@ -1,10 +1,12 @@
 import moment from "moment";
 import * as PM2 from "pm2";
-import TwitchJs, { Api, Chat, PrivateMessage } from "twitch-js";
+import TwitchJs, { Api, Chat, PrivateMessage, PrivateMessages } from "twitch-js";
 import { Connection, createConnection, getRepository } from "typeorm";
 import { User } from "./db/entities/User";
-import { ICommand, IConfig } from "./interfaces";
-import { parseMessage } from "./utils";
+import { IAuthResponse, ICommand, IConfig } from "./interfaces";
+import { isPrivateMessage, parseMessage } from "./utils";
+import axios from "axios";
+import { saveConfig } from "./config";
 
 export const ACTIVE_THRESHOLD = 15 * 60 * 1000; // 15 minutes
 
@@ -25,7 +27,12 @@ export class Bot {
   constructor(config: IConfig) {
     this.config = config;
 
-    this.tjs = new TwitchJs({ token: this.config.token, username: this.config.username });
+    this.tjs = new TwitchJs({
+      token: this.config.token,
+      username: this.config.username,
+      onAuthenticationFailure: this.onAuthFailure.bind(this),
+      // log: { level: "warn" }
+    });
 
     this.api = this.tjs.api;
     this.chat = this.tjs.chat;
@@ -34,6 +41,42 @@ export class Bot {
     this.updates = new Map();
 
     this.chat.on("PRIVMSG", this.onMessage.bind(this));
+  }
+
+  private async onAuthFailure(): Promise<string> {
+    console.log("onAuthFailure: Refreshing token");
+
+    console.log(this.config);
+
+    try {
+      const response = await axios.request<IAuthResponse>(
+        {
+          method: "POST",
+          url: "https://id.twitch.tv/oauth2/token",
+          params: {
+            grant_type: "refresh_token",
+            refresh_token: this.config.refresh_token,
+            client_id: this.config.client_id,
+            client_secret: this.config.client_secret
+          },
+          responseType: "json"
+        }
+      )
+
+      this.config.token = "oauth:" + response.data.access_token;
+      this.config.refresh_token = response.data.refresh_token;
+      
+      if (this.config.refresh_token) {
+        await saveConfig(this.config);
+      }
+
+      console.log(`onAuthFailure: New token ${this.config.token}`);
+
+      return this.config.token;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   public async connect() {
@@ -84,7 +127,9 @@ export class Bot {
     await this.chat.say(this.config.channel, message);
   }
 
-  private async onMessage(msg: PrivateMessage): Promise<void> {
+  private async onMessage(msg: PrivateMessages): Promise<void> {
+    if (!isPrivateMessage(msg)) return;
+
     if (msg.channel !== this.config.channel) {
       return;
     }

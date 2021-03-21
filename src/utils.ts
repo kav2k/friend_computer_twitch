@@ -1,4 +1,4 @@
-import { PrivateMessage } from "twitch-js";
+import { ChatEvents, Commands, PrivateMessage, PrivateMessages } from "twitch-js";
 import { IParsedMessage } from "./interfaces";
 
 const COMMAND_REGEX = /^(\S+)(?:\s+(.+))?/;
@@ -42,4 +42,8 @@ export function pickRandom<T>(candidates: T[]): T | null {
   } else {
     return null;
   }
+}
+
+export function isPrivateMessage(msg: PrivateMessages): msg is PrivateMessage {
+  return msg.event == Commands.PRIVATE_MESSAGE;
 }
