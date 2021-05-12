@@ -41,6 +41,9 @@ export class Bot {
     this.updates = new Map();
 
     this.chat.on("PRIVMSG", this.onMessage.bind(this));
+
+    // Make sure this is attempted on every connect
+    this.chat.on("CONNECTED", () => this.chat.join(this.config.channel));
   }
 
   private async onAuthFailure(): Promise<string> {
@@ -82,7 +85,6 @@ export class Bot {
   public async connect() {
     await this.chat.connect();
     this.connection = await createConnection();
-    await this.chat.join(this.config.channel);
   }
 
   public async terminate(reason: string, stayDead: boolean = false) {
