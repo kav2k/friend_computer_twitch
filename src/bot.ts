@@ -3,6 +3,7 @@ import * as PM2 from "pm2";
 import TwitchJs, { Api, Chat, PrivateMessage, PrivateMessages } from "twitch-js";
 import { Connection, createConnection, getRepository } from "typeorm";
 import { User } from "./db/entities/User";
+import { Pick } from "./db/entities/Pick";
 import { IAuthResponse, ICommand, IConfig } from "./interfaces";
 import { isPrivateMessage, parseMessage } from "./utils";
 import axios from "axios";
@@ -206,8 +207,20 @@ export class Bot {
           user = userByName;
         } else {
           // User updated their username to something not previously known
-          await userRepository.remove(user);
-          user = userRepository.create({username, id, nickname});
+          const oldUser = user;
+
+          // Create a new user (since primary key changed)
+          const newUser = userRepository.create({...user, username, id, nickname});
+          await userRepository.save(newUser)
+          user = newUser;
+
+          // Update all pick records to use the new user
+          const pickRepository = getRepository(Pick);
+          const updatedPicks = oldUser.picks.map(pick => { pick.user = newUser; return pick; });
+          await pickRepository.save(updatedPicks);
+
+          // Delete old user
+          await userRepository.remove(oldUser);
         }
       }
       // Gotta update their capitalization just in case
