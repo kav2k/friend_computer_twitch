@@ -1,5 +1,5 @@
 import { PrivateMessage } from "twitch-js";
-import { LEGAL_CHARACTERS, LEGAL_REGEX, MAX_CUSTOM_LENGTH } from "../utils";
+import { PoolType } from "../db/entities/Pool";
 import { BaseCommand } from "./BaseCommand";
 
 export class NameCommand extends BaseCommand {
@@ -14,46 +14,69 @@ export class NameCommand extends BaseCommand {
 
   public async run(msg: PrivateMessage): Promise<void> {
     const userRepository = this.userRepository;
+    const settings = await this.bot.getSettings();
 
     const { username, nickname, arg: customName } = this.parse(msg);
+
+    if (!settings.currentPool) {
+      this.bot.queueUpdate("No name pool is currently active,", nickname);
+      return;
+    }
+
+    const pool = settings.currentPool;
+
+    if (!pool.allowsReservation) {
+      this.bot.queueUpdate(`Name pool ${pool.prettyName} does not allow reservation,`, nickname);
+      return;
+    }
 
     const user = await userRepository.preload({username});
 
     if (user && user.eligible) {
-      if (user.picked) {
-        this.bot.queueUpdate("Name already picked for:", nickname);
+      const maybePick = await this.pickRepository.findOne({pool: pool, user: user});
+
+      if (maybePick?.picked) {
+        this.bot.queueUpdate(`Name was already picked in ${pool.prettyName} pool for:`, nickname);
         return;
       }
 
       if (
-        user.reserved &&
-        ((user.customName === customName) || (!user.customName && !customName))
+        maybePick?.reserved &&
+        ((maybePick.customName === customName) || (!maybePick.customName && !customName))
       ) {
-        this.bot.queueUpdate("Name already reserved for:", nickname);
+        this.bot.queueUpdate(`Name already reserved in ${pool.prettyName} pool for:`, nickname);
         return;
       }
 
-      if (customName && !customName.match(LEGAL_REGEX)) {
-        this.bot.queueUpdate("Illegal characters in custom name for:", nickname);
-        this.bot.queueUpdate("Accepted characters:", LEGAL_CHARACTERS);
-      } else if (customName && customName.length > MAX_CUSTOM_LENGTH) {
-        this.bot.queueUpdate(`Custom name too long (max ${MAX_CUSTOM_LENGTH}) for:`, nickname);
-      } else if (customName) {
-        user.reserved = true;
-        user.customName = customName;
-        userRepository.save(user);
-        this.bot.queueUpdate("Custom name reserved for:", `${nickname} "${customName}"`);
-      } else if (!nickname.match(LEGAL_REGEX)) {
-        this.bot.queueUpdate("Illegal characters in username, use a custom name:", nickname);
-        this.bot.queueUpdate("Accepted characters:", LEGAL_CHARACTERS);
-      } else if (nickname.length > MAX_CUSTOM_LENGTH) {
-        this.bot.queueUpdate(`Nickname too long (max ${MAX_CUSTOM_LENGTH}), pick a custom name:`, nickname);
+      const pick = maybePick ?? this.pickRepository.create({pool: pool, user: user});
+      pick.reserved = true;
+      pick.reservedDate = msg.timestamp;
+
+      if (customName) {
+        if (pool.validateName(customName)) {
+          pick.customName = customName;
+          await this.pickRepository.save(pick);
+          this.bot.queueUpdate(`Custom name reserved in ${pool.prettyName} pool for:`, `${nickname} "${customName}"`);
+        } else {
+          this.bot.queueUpdate(`Invalid custom name by ${pool.prettyName} pool rules for:`, `${nickname} "${customName}"`);
+          if (pool.validRemark) {
+            this.bot.queueUpdate(`Name validity rules for ${pool.prettyName} pool:`, pool.validRemark);
+          }
+        }
       } else {
-        user.reserved = true;
-        user.customName = null;
-        userRepository.save(user);
-        this.bot.queueUpdate("Name reserved for:", nickname);
+        if (pool.validateName(nickname)) {
+          pick.customName = null;
+          await this.pickRepository.save(pick);
+          this.bot.queueUpdate(`Name reserved in ${pool.prettyName} pool for:`, nickname);
+        } else {
+          this.bot.queueUpdate(`Invalid name by ${pool.prettyName} pool rules, pick a custom name:`, nickname);
+          if (pool.validRemark) {
+            this.bot.queueUpdate(`Name validity rules for ${pool.prettyName} pool:`, pool.validRemark);
+          }
+        }
       }
+    } else if (user && !user.eligible) {
+      this.bot.queueUpdate("You are banned from the naming system,", nickname);
     }
   }
 }

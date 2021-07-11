@@ -26,4 +26,35 @@ export class Pool {
 
   @OneToMany(type => Pick, pick => pick.pool)
   public picks!: Pick[];
+
+  @Column({nullable: true, type: "varchar"})
+  public displayName!: string | null;
+
+  @Column({nullable: true, type: "varchar"})
+  public validRegex!: string | null;
+
+  @Column({nullable: true, type: "varchar"})
+  public validRemark!: string | null;
+
+  public get prettyName() {
+    return this.displayName || this.name;
+  }
+
+  public validateName(candidate: string): boolean {
+    if (this.validRegex) {
+      try {
+        const regex = new RegExp(this.validRegex);
+        return regex.test(candidate);
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  public get allowsReservation(): boolean {
+    return this.type == PoolType.CLASSIC;
+  }
 }

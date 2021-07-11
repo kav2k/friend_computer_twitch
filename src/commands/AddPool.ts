@@ -14,11 +14,10 @@ export class AddPoolCommand extends BaseCommand {
     const { arg, isElevated } = this.parse(msg);
 
     if (isElevated) {
-      const match = arg?.match(/^(\S+)\s+(\S+)$/);
+      const match = arg?.match(/^(\S+)$/);
 
-      if (match && Object.values(PoolType).includes(match[2] as PoolType)) {
+      if (match) {
         poolName = match[1];
-        poolType = match[2] as PoolType;
       } else {
         this.bot.say(`Can't parse "${arg}"`);
         return;
@@ -30,8 +29,7 @@ export class AddPoolCommand extends BaseCommand {
         this.bot.say(`Pool ${poolName} already exists`);
       } else {
         await poolRepository.save({
-          name: poolName,
-          type: poolType
+          name: poolName
         });
         this.bot.say(`Pool ${poolName} created`);
       }

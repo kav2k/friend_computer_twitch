@@ -8,6 +8,7 @@ export class SetPickCommand extends BaseCommand {
   public async run(msg: PrivateMessage): Promise<void> {
     const userRepository = this.userRepository;
     const pickRepository = this.pickRepository;
+    const settings = await this.bot.getSettings();
 
     const { arg, isElevated } = this.parse(msg);
     let targetNickname: string | undefined;
@@ -19,11 +20,19 @@ export class SetPickCommand extends BaseCommand {
       const poolName = match[1];
       pool = await this.poolRepository.findOne({name: poolName});
       if (!pool) {
-        this.bot.say(`Pool "${targetNickname}" does not exist`);
+        this.bot.say(`Pool "${poolName}" does not exist`);
+        return;
       }
 
       targetNickname = match[2];
     } else {
+      if (settings.currentPool) {
+        pool = settings.currentPool;
+      } else {
+        this.bot.say(`No pool is currently selected, can't set pick`);
+        return;
+      }
+
       targetNickname = arg;
     }
 
@@ -31,55 +40,39 @@ export class SetPickCommand extends BaseCommand {
       const user = await userRepository.preload({username: targetNickname.toLowerCase()});
 
       if (user) {
-        if (pool) {
-          const pick = await pickRepository
-            .findOne({user: user, pool: pool})
+        const pick = await pickRepository.findOne({user: user, pool: pool})
+        if (pick?.picked) {
+          this.bot.say(`User ${targetNickname} was already picked for the ${pool.prettyName} pool`);
+        } else {
           if (pick) {
-            this.bot.say(`User ${targetNickname} was already picked for pool "${pool.name}"`);
+            pick.picked = true;
+            pick.pickedDate = msg.timestamp;
+            pick.pickedRemark = "Picked manually";
+            await pickRepository.save(pick);
           } else {
             await pickRepository.save({
               user: user,
               pool: pool,
+              picked: true,
               pickedDate: msg.timestamp,
               pickedRemark: "Picked manually"
             })
-            this.bot.say(`User ${targetNickname} manually set as picked for pool "${pool.name}"`);
           }
-        } else {
-          if (user.picked) {
-            this.bot.say(`User ${targetNickname} was already picked`);
-          } else {
-            user.picked = true;
-            user.pickedDate = msg.timestamp;
-            user.pickedRemark = "Picked manually";
-  
-            await userRepository.save(user);
-            this.bot.say(`User ${targetNickname} manually set as picked`);
-          }
+          this.bot.say(`User ${targetNickname} manually set as picked for the ${pool.prettyName} pool`);
         }
       } else {
-        if (pool) {
-          const newUser = await userRepository.save({
-            username: targetNickname.toLowerCase(),
-            nickname: targetNickname,
-          });
-          await pickRepository.save({
-            user: newUser,
-            pool: pool,
-            pickedDate: msg.timestamp,
-            pickedRemark: "Picked manually"
-          })
-          this.bot.say(`User ${targetNickname} created and manually set as picked for pool "${pool.name}"`);
-        } else {
-          await userRepository.save({
-            username: targetNickname.toLowerCase(),
-            nickname: targetNickname,
-            picked: true,
-            pickedDate: msg.timestamp,
-            pickedRemark: "Picked manually"
-          });
-          this.bot.say(`User ${targetNickname} created and manually set as picked`);
-        }
+        const newUser = await userRepository.save({
+          username: targetNickname.toLowerCase(),
+          nickname: targetNickname,
+        });
+        await pickRepository.save({
+          user: newUser,
+          pool: pool,
+          picked: true,
+          pickedDate: msg.timestamp,
+          pickedRemark: "Picked manually"
+        })
+        this.bot.say(`User ${targetNickname} created and manually set as picked for the ${pool.prettyName} pool`);
       }
     }
   }

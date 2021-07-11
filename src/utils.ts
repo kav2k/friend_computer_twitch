@@ -3,13 +3,6 @@ import { IParsedMessage } from "./interfaces";
 
 const COMMAND_REGEX = /^(\S+)(?:\s+(.+))?/;
 
-export const MAX_CUSTOM_LENGTH = 27;
-
-export const LEGAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyz" +
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + " 1234567890!?.,-\"“”'‘’/…♂♀";
-
-export const LEGAL_REGEX = new RegExp(`^.+$`);
-
 export function parseMessage(msg: PrivateMessage, prefix: string): IParsedMessage {
   const parsed: IParsedMessage = {
     username: msg.username,

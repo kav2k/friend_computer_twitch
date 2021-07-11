@@ -3,6 +3,7 @@ import * as PM2 from "pm2";
 import TwitchJs, { Api, Chat, PrivateMessage, PrivateMessages } from "twitch-js";
 import { Connection, createConnection, getRepository } from "typeorm";
 import { User } from "./db/entities/User";
+import { Settings } from "./db/entities/Settings";
 import { Pick } from "./db/entities/Pick";
 import { IAuthResponse, ICommand, IConfig } from "./interfaces";
 import { isPrivateMessage, parseMessage } from "./utils";
@@ -21,6 +22,8 @@ export class Bot {
   private readonly tjs: TwitchJs;
   private connection?: Connection;
   private commands: Map<string, ICommand>;
+
+  private settings?: Settings;
 
   private updates: Map<string, string[]>;
   private queueInterval?: NodeJS.Timeout;
@@ -86,6 +89,31 @@ export class Bot {
   public async connect() {
     await this.chat.connect();
     this.connection = await createConnection();
+  }
+
+  public async getSettings(): Promise<Settings> {
+    // // If the Settings object is already cached, return it
+    // if (this.settings) {
+    //   console.log("Cached settings:", this.settings);
+    //   return this.settings;
+    // }
+
+    // Else, try to load it - first one in the table, it's supposed to be a singleton
+    const settingsRepository = getRepository(Settings);
+    let settings = await settingsRepository.findOne();
+
+    if (settings) {
+      // We found existing settings - use them
+      console.log("Found settings:", settings);
+      this.settings = settings;
+      return settings;
+    } else {
+      // Create default settings and save them
+      settings = settingsRepository.create();
+      console.log("Created settings:", settings);
+      await settingsRepository.save(settings);
+      return settings;
+    }
   }
 
   public async terminate(reason: string, stayDead: boolean = false) {

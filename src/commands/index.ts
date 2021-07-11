@@ -9,3 +9,5 @@ export { BanNameCommand } from "./BanName";
 export { UnBanNameCommand } from "./UnBanName";
 export { NameStatsCommand } from "./NameStats";
 export { AddPoolCommand } from "./AddPool";
+export { ConfigPoolCommand } from "./ConfigPool";
+export { UsePoolCommand } from "./UsePool";

@@ -13,6 +13,7 @@ export class PickCommand extends BaseCommand {
   public async run(msg: PrivateMessage): Promise<void> {
     const userRepository = this.userRepository;
     const poolRepository = this.poolRepository;
+    const settings = await this.bot.getSettings();
 
     const { arg, isElevated } = this.parse(msg);
 
@@ -26,106 +27,82 @@ export class PickCommand extends BaseCommand {
           this.bot.say(`Pool "${arg}" does not exist`);
           return;
         }
+      } else {
+        if (settings.currentPool) {
+          pool = settings.currentPool;
+        } else {
+          this.bot.say(`Can't pick, no pool is currently active`);
+          return;
+        }
       }
 
-      if (pool) {
-        const pickedQb = this.pickRepository
-          .createQueryBuilder("pick")
-          .select(`pick."userUsername"`)
-          .where(`pick."poolName" = :pool`, { pool: pool.name });
+      // const pickedQb = this.pickRepository
+      //   .createQueryBuilder("pick")
+      //   .select(`pick."userUsername"`)
+      //   .where(`pick."poolName" = :pool`, { pool: pool.name })
+      //   .andWhere(`pick."picked"`);
 
-        let candidates: User[];
-        
-        switch (pool.type) {
-          case PoolType.ACTIVE_ONLY:
-            candidates = await userRepository
-              .createQueryBuilder("user")
-              .where("user.eligible")
-              .andWhere(`user.username NOT IN (${pickedQb.getQuery()})`)
-              .setParameters(pickedQb.getParameters())
-              .andWhere("user.lastActive >= :cutoff", { cutoff })
-              .getMany();
-            break;
-          default:
-            candidates = await userRepository
-              .createQueryBuilder("user")
-              .where("user.eligible")
-              .andWhere(`user.username NOT IN (${pickedQb.getQuery()})`)
-              .setParameters(pickedQb.getParameters())
-              .andWhere(new Brackets((qb) => {
-                qb.where("user.lastActive >= :cutoff", { cutoff })
-                  .orWhere("user.reserved");
-              }))
-              .getMany();
+      let candidates: User[];
+
+      let notPickedQuery = userRepository
+        .createQueryBuilder("user")
+        .leftJoinAndSelect("user.picks", "pick", "pick.pool = :pool", { pool: pool.name })
+        .where("user.eligible")
+        .andWhere("COALESCE(pick.picked, FALSE) = FALSE");
+      
+      switch (pool.type) {
+        case PoolType.ACTIVE_ONLY:
+          candidates = await notPickedQuery
+            .andWhere("user.lastActive >= :cutoff", { cutoff })
+            .getMany();
+          break;
+        case PoolType.CLASSIC:
+        default:
+          candidates = await notPickedQuery
+            .andWhere(new Brackets((qb) => {
+              qb.where("user.lastActive >= :cutoff", { cutoff })
+                .orWhere("pick.reserved");
+            }))
+            .getMany();
+      }
+
+      const winner = pickRandom(candidates);
+
+      if (winner) {
+        let name = winner.nickname;
+        let reason = "";
+
+        const maybePick = await this.pickRepository.findOne({pool: pool, user: winner});
+
+        if (maybePick?.reserved) {
+          if (maybePick.customName) {
+            name = maybePick.customName;
+            reason = `reserved name by ${winner.nickname}`;
+          } else {
+            reason = "reserved name";
+          }
+        } else {
+          reason = `active ${moment(winner.lastActive).fromNow()}`;
         }
 
-        const winner = pickRandom(candidates);
-
-        if (winner) {
-          const name = winner.nickname;
-          let reason = "";
-
-          if (pool.type != PoolType.ACTIVE_ONLY) {
-            if (winner.reserved) {
-              if (winner.customName) {
-                reason = `reserved name by ${winner.nickname}`;
-              } else {
-                reason = "reserved name";
-              }
-            } else {
-              reason = `active ${moment(winner.lastActive).fromNow()}`;
-            }
-          } else {
-            reason = `active ${moment(winner.lastActive).fromNow()}`;
-          }
-
+        if (maybePick) {
+          maybePick.picked = true;
+          maybePick.pickedDate = msg.timestamp;
+          maybePick.pickedRemark = `Picked randomly, ${reason}`;
+          await this.pickRepository.save(maybePick);
+        } else {
           await this.pickRepository.save({
             user: winner,
             pool: pool,
+            picked: true,
             pickedDate: msg.timestamp,
-            pickedRemark: "Picked randomly"
+            pickedRemark: `Picked randomly, ${reason}` 
           });
-
-          this.bot.say(`@${this.bot.config.broadcaster} Name picked for pool "${pool.name}": "${name}" (${reason})`);
-        } else {
-          this.bot.say(`No eligible candidates for pool "${pool.name}"!`);
         }
+
+        this.bot.say(`@${this.bot.config.broadcaster} Name picked for the ${pool.prettyName} pool: "${name}" (${reason})`);
       } else {
-        const candidates = await userRepository
-          .createQueryBuilder("user")
-          .where("user.eligible")
-          .andWhere("NOT user.picked")
-          .andWhere(new Brackets((qb) => {
-            qb.where("user.lastActive >= :cutoff", { cutoff })
-              .orWhere("user.reserved");
-          }))
-          .getMany();
-
-        const winner = pickRandom(candidates);
-        if (winner) {
-          const name = winner.customName ?? winner.nickname;
-          let reason = "";
-
-          if (winner.reserved) {
-            if (winner.customName) {
-              reason = `reserved name by ${winner.nickname}`;
-            } else {
-              reason = "reserved name";
-            }
-          } else {
-            reason = `active ${moment(winner.lastActive).fromNow()}`;
-          }
-
-          winner.picked = true;
-          winner.pickedDate = msg.timestamp;
-          winner.pickedRemark = "Picked randomly";
-
-          await userRepository.save(winner);
-
-          this.bot.say(`@${this.bot.config.broadcaster} Name picked: "${name}" (${reason})`);
-        } else {
-          this.bot.say("No eligible candidates!");
-        }
+        this.bot.say(`No eligible candidates for the ${pool.prettyName} pool!`);
       }
     }
   }
