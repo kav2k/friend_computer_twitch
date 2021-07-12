@@ -40,7 +40,7 @@ export class SetPickCommand extends BaseCommand {
       const user = await userRepository.preload({username: targetNickname.toLowerCase()});
 
       if (user) {
-        const pick = await pickRepository.findOne({user: user, pool: pool})
+        let pick = await pickRepository.findOne({user: user, pool: pool})
         if (pick?.picked) {
           this.bot.say(`User ${targetNickname} was already picked for the ${pool.prettyName} pool`);
         } else {
@@ -50,7 +50,7 @@ export class SetPickCommand extends BaseCommand {
             pick.pickedRemark = "Picked manually";
             await pickRepository.save(pick);
           } else {
-            await pickRepository.save({
+            pick = await pickRepository.save({
               user: user,
               pool: pool,
               picked: true,
@@ -59,13 +59,14 @@ export class SetPickCommand extends BaseCommand {
             })
           }
           this.bot.say(`User ${targetNickname} manually set as picked for the ${pool.prettyName} pool`);
+          this.bot.lastPick = pick;
         }
       } else {
         const newUser = await userRepository.save({
           username: targetNickname.toLowerCase(),
           nickname: targetNickname,
         });
-        await pickRepository.save({
+        const pick = await pickRepository.save({
           user: newUser,
           pool: pool,
           picked: true,
@@ -73,6 +74,7 @@ export class SetPickCommand extends BaseCommand {
           pickedRemark: "Picked manually"
         })
         this.bot.say(`User ${targetNickname} created and manually set as picked for the ${pool.prettyName} pool`);
+        this.bot.lastPick = pick;
       }
     }
   }

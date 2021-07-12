@@ -24,6 +24,8 @@ export class Bot {
   private commands: Map<string, ICommand>;
 
   private settings?: Settings;
+  
+  public lastPick?: Pick;
 
   private updates: Map<string, string[]>;
   private queueInterval?: NodeJS.Timeout;

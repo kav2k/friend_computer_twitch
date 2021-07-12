@@ -72,7 +72,7 @@ export class PickCommand extends BaseCommand {
         let name = winner.nickname;
         let reason = "";
 
-        const maybePick = await this.pickRepository.findOne({pool: pool, user: winner});
+        let maybePick = await this.pickRepository.findOne({pool: pool, user: winner});
 
         if (maybePick?.reserved) {
           if (maybePick.customName) {
@@ -91,7 +91,7 @@ export class PickCommand extends BaseCommand {
           maybePick.pickedRemark = `Picked randomly, ${reason}`;
           await this.pickRepository.save(maybePick);
         } else {
-          await this.pickRepository.save({
+          maybePick = await this.pickRepository.save({
             user: winner,
             pool: pool,
             picked: true,
@@ -100,7 +100,10 @@ export class PickCommand extends BaseCommand {
           });
         }
 
-        this.bot.say(`@${this.bot.config.broadcaster} Name picked for the ${pool.prettyName} pool: "${name}" (${reason})`);
+        if (maybePick) {
+          this.bot.say(`@${this.bot.config.broadcaster} Name picked for the ${pool.prettyName} pool: "${name}" (${reason})`);
+          this.bot.lastPick = maybePick;
+        }
       } else {
         this.bot.say(`No eligible candidates for the ${pool.prettyName} pool!`);
       }

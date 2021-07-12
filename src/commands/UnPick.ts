@@ -1,6 +1,7 @@
 import { PrivateMessage } from "twitch-js";
 import { BaseCommand } from "./BaseCommand";
 import { Pool } from "../db/entities/Pool";
+import { Pick } from "../db/entities/Pick";
 
 export class UnPickCommand extends BaseCommand {
   public readonly name = "unpick";
@@ -11,6 +12,7 @@ export class UnPickCommand extends BaseCommand {
     const { arg, isElevated } = this.parse(msg);
     let targetNickname: string | undefined;
     let pool: Pool | undefined;
+    let lastPick: Pick | undefined;
 
     const match = arg?.match(/^(\S+)\s+(\S+)$/);
 
@@ -23,7 +25,7 @@ export class UnPickCommand extends BaseCommand {
       }
 
       targetNickname = match[2];
-    } else {
+    } else if (arg) {
       if (settings.currentPool) {
         pool = settings.currentPool;
       } else {
@@ -32,28 +34,50 @@ export class UnPickCommand extends BaseCommand {
       }
 
       targetNickname = arg;
+    } else if (this.bot.lastPick) {
+      lastPick = await this.pickRepository.findOne(this.bot.lastPick, {relations: ["pool", "user"]});
+      if (!lastPick) {
+        this.bot.say(`Can't find last pick in the database!`);
+        return;
+      } else {
+        pool = lastPick.pool;
+      }
+    } else {
+      this.bot.say(`No last pick to unpick!`);
+      return;
     }
 
-    if (isElevated && targetNickname) {
-      const userRepository = this.userRepository;
-      const pickRepository = this.pickRepository;
-
-      const user = await userRepository.preload({username: targetNickname.toLowerCase()});
-
-      if (user) {
-        const pick = await pickRepository.findOne({
-          user: user,
-          pool: pool
-        })
-        if (pick?.picked) {
-          pick.picked = false;
-          await pickRepository.save(pick);
-          this.bot.say(`User ${targetNickname} was unpicked for the ${pool.prettyName} pool`);
+    if (isElevated) {
+      if (targetNickname) {
+        const userRepository = this.userRepository;
+        const pickRepository = this.pickRepository;
+  
+        const user = await userRepository.preload({username: targetNickname.toLowerCase()});
+  
+        if (user) {
+          const pick = await pickRepository.findOne({
+            user: user,
+            pool: pool
+          })
+          if (pick?.picked) {
+            pick.picked = false;
+            await pickRepository.save(pick);
+            this.bot.say(`User ${targetNickname} was unpicked for the ${pool.prettyName} pool`);
+          } else {
+            this.bot.say(`User ${targetNickname} wasn't currently picked for the ${pool.prettyName} pool`);
+          }
         } else {
           this.bot.say(`User ${targetNickname} wasn't currently picked for the ${pool.prettyName} pool`);
         }
       } else {
-        this.bot.say(`User ${targetNickname} wasn't currently picked for the ${pool.prettyName} pool`);
+        if (lastPick) {
+          lastPick.picked = false;
+          this.pickRepository.save(lastPick);
+          this.bot.lastPick = undefined;
+          this.bot.say(`Last pick, ${lastPick.user.nickname} was unpicked for the ${pool?.prettyName} pool`);
+        } else {
+          this.bot.say(`No last pick to unpick!`);
+        }
       }
     }
   }
