@@ -212,6 +212,7 @@ export class Bot {
   private async markActive(msg: PrivateMessage): Promise<void> {
     const timestampMoment = moment(msg.timestamp);
     const userRepository = getRepository(User);
+    const pickRepository = getRepository(Pick);
 
     const username = msg.username;
     const nickname = msg.tags.displayName || msg.username;
@@ -227,29 +228,28 @@ export class Bot {
       if (user.username !== username) {
         // We've got a user with the same id but different username - user was renamed
         // Will try to find by old username
+        const oldUser = user;
+        let newUser: User;
+
         const userByName = await userRepository.findOne({username});
         if (userByName) {
           // Had a user with that username already; just update the ID, leave other data intact
-          userByName.id = user.id;
-          await userRepository.remove(user);
-          user = userByName;
+          userByName.id = oldUser.id;
+          newUser = userByName;
         } else {
           // User updated their username to something not previously known
-          const oldUser = user;
-
           // Create a new user (since primary key changed)
-          const newUser = userRepository.create({...user, username, id, nickname});
-          await userRepository.save(newUser)
-          user = newUser;
-
-          // Update all pick records to use the new user
-          const pickRepository = getRepository(Pick);
-          const updatedPicks = oldUser.picks.map(pick => { pick.user = newUser; return pick; });
-          await pickRepository.save(updatedPicks);
-
-          // Delete old user
-          await userRepository.remove(oldUser);
+          newUser = userRepository.create({...user, username, id, nickname});
         }
+        await userRepository.save(newUser);
+
+        // Update all pick records to use the new user
+        const oldPicks = await pickRepository.find({user: oldUser});
+        const updatedPicks = oldPicks.map(pick => { pick.user = newUser; return pick; });
+        await pickRepository.save(updatedPicks);
+
+        user = newUser;
+        await userRepository.remove(oldUser);
       }
       // Gotta update their capitalization just in case
       user.nickname = nickname;
@@ -279,6 +279,7 @@ export class Bot {
       });
       console.log(`Setting user ${username} as active`);
     }
+
     await userRepository.save(user);
   }
 }
