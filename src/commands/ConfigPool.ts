@@ -54,6 +54,7 @@ export class ConfigPoolCommand extends BaseCommand {
                     return;
             }
             await poolRepository.save(pool);
+            await this.bot.refreshSettings();
         } else {
             this.bot.say(`Pool ${poolName} doesn't exist`);
         }
