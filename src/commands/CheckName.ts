@@ -45,7 +45,7 @@ export class CheckNameCommand extends BaseCommand {
     } else if (pick?.picked) {
       this.bot.queueUpdate(`Name already picked in the ${pool.prettyName} pool for:`, nickname);
     } else if (pool.allowsReservation && pick?.reserved && pick?.customName) {
-      this.bot.queueUpdate(`Custom name reserved in the ${pool.prettyName} pool for:`, `${nickname} "${user.customName}"`);
+      this.bot.queueUpdate(`Custom name reserved in the ${pool.prettyName} pool for:`, `${nickname} "${pick.customName}"`);
     } else if (pool.allowsReservation && pick?.reserved) {
       this.bot.queueUpdate(`Name reserved in the ${pool.prettyName} pool for:`, nickname);
     } else if (pool.allowsReservation) {
