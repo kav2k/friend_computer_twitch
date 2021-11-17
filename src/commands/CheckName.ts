@@ -1,3 +1,4 @@
+import moment from "moment";
 import { PrivateMessage } from "twitch-js";
 import { Pool } from "../db/entities/Pool";
 import { User } from "../db/entities/User";
@@ -43,7 +44,7 @@ export class CheckNameCommand extends BaseCommand {
     if (!user.eligible) {
       this.bot.queueUpdate("Banned from name picking:", nickname);
     } else if (pick?.picked) {
-      this.bot.queueUpdate(`Name already picked in the ${pool.prettyName} pool for:`, nickname);
+      this.bot.queueUpdate(`Name already picked in the ${pool.prettyName} pool on ${moment(pick.pickedDate).format("YYYY-MM-DD")} for:`, nickname);
     } else if (pool.allowsReservation && pick?.reserved && pick?.customName) {
       this.bot.queueUpdate(`Custom name reserved in the ${pool.prettyName} pool for:`, `${nickname} "${pick.customName}"`);
     } else if (pool.allowsReservation && pick?.reserved) {

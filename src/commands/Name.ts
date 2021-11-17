@@ -1,3 +1,4 @@
+import moment from "moment";
 import { PrivateMessage } from "twitch-js";
 import { PoolType } from "../db/entities/Pool";
 import { BaseCommand } from "./BaseCommand";
@@ -36,7 +37,7 @@ export class NameCommand extends BaseCommand {
       const maybePick = await this.pickRepository.findOne({pool: pool, user: user});
 
       if (maybePick?.picked) {
-        this.bot.queueUpdate(`Name was already picked in ${pool.prettyName} pool for:`, nickname);
+        this.bot.queueUpdate(`Name already picked in the ${pool.prettyName} pool on ${moment(maybePick.pickedDate).format("YYYY-MM-DD")} for:`, nickname);
         return;
       }
 
