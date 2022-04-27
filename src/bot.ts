@@ -36,6 +36,7 @@ export class Bot {
     this.tjs = new TwitchJs({
       token: this.config.token,
       username: this.config.username,
+      clientId: this.config.client_id,
       onAuthenticationFailure: this.onAuthFailure.bind(this),
       // log: { level: "warn" }
     });
