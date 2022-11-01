@@ -9,7 +9,7 @@ export class UnNameCommand extends BaseCommand {
     const userRepository = this.userRepository;
     const settings = await this.bot.getSettings();
 
-    let pool: Pool | undefined;
+    let pool: Pool | null = null;
 
     const { username, nickname, arg, isElevated } = this.parse(msg);
 
@@ -19,7 +19,7 @@ export class UnNameCommand extends BaseCommand {
   
       if (match) {
         const poolName = match[1];
-        pool = await this.poolRepository.findOne({name: poolName});
+        pool = await this.poolRepository.findOneBy({name: poolName});
         if (!pool) {
           this.bot.say(`Pool "${poolName}" does not exist`);
           return;
@@ -38,7 +38,7 @@ export class UnNameCommand extends BaseCommand {
       }
 
       const user = await userRepository.preload({username: targetUsername.toLowerCase()});
-      const maybePick = await this.pickRepository.findOne({user, pool});
+      const maybePick = await this.pickRepository.findOneBy({user: {username: user?.username}, pool: {name: pool.name}});
 
       if (user && maybePick?.reserved) {
         maybePick.reserved = false;
@@ -58,7 +58,7 @@ export class UnNameCommand extends BaseCommand {
         return;
       }
 
-      const maybePick = await this.pickRepository.findOne({user, pool});
+      const maybePick = await this.pickRepository.findOneBy({user: {username: user?.username}, pool: {name: pool.name}});
 
       if (user && maybePick?.reserved) {
         maybePick.reserved = false;

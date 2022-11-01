@@ -11,14 +11,14 @@ export class UnPickCommand extends BaseCommand {
 
     const { arg, isElevated } = this.parse(msg);
     let targetNickname: string | undefined;
-    let pool: Pool | undefined;
-    let lastPick: Pick | undefined;
+    let pool: Pool | null = null;
+    let lastPick: Pick | null = null;
 
     const match = arg?.match(/^(\S+)\s+(\S+)$/);
 
     if (match) {
       const poolName = match[1];
-      pool = await this.poolRepository.findOne({name: poolName});
+      pool = await this.poolRepository.findOneBy({name: poolName});
       if (!pool) {
         this.bot.say(`Pool "${poolName}" does not exist`);
         return;
@@ -35,7 +35,12 @@ export class UnPickCommand extends BaseCommand {
 
       targetNickname = arg;
     } else if (this.bot.lastPick) {
-      lastPick = await this.pickRepository.findOne(this.bot.lastPick, {relations: ["pool", "user"]});
+      lastPick = await this.pickRepository.findOne({
+        where: {
+          id: this.bot.lastPick.id
+        },
+        relations: ["pool", "user"]
+    });
       if (!lastPick) {
         this.bot.say(`Can't find last pick in the database!`);
         return;
@@ -55,9 +60,9 @@ export class UnPickCommand extends BaseCommand {
         const user = await userRepository.preload({username: targetNickname.toLowerCase()});
   
         if (user) {
-          const pick = await pickRepository.findOne({
-            user: user,
-            pool: pool
+          const pick = await pickRepository.findOneBy({
+            user: {username: user.username},
+            pool: {name: pool.name}
           })
           if (pick?.picked) {
             pick.picked = false;

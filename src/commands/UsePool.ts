@@ -25,7 +25,7 @@ export class UsePoolCommand extends BaseCommand {
           return;
         }
 
-        const pool = await poolRepository.findOne({name: poolName});
+        const pool = await poolRepository.findOneBy({name: poolName});
 
         if (pool) {
           const settings = await this.bot.getSettings();

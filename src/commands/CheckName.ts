@@ -39,7 +39,7 @@ export class CheckNameCommand extends BaseCommand {
 
     const pool = settings.currentPool;
 
-    const pick = await this.pickRepository.findOne({pool: pool, user: user});
+    const pick = await this.pickRepository.findOneBy({pool: {name: pool.name}, user: {username: user.username}});
 
     if (!user.eligible) {
       this.bot.queueUpdate("Banned from name picking:", nickname);

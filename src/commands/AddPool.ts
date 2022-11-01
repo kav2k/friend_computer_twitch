@@ -9,7 +9,6 @@ export class AddPoolCommand extends BaseCommand {
   public async run(msg: PrivateMessage): Promise<void> {
     const poolRepository = this.poolRepository;
     let poolName : string;
-    let poolType : PoolType;
 
     const { arg, isElevated } = this.parse(msg);
 

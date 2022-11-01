@@ -19,10 +19,10 @@ export class PickCommand extends BaseCommand {
 
     if (isElevated) {
       const cutoff = moment(msg.timestamp).subtract(ACTIVE_THRESHOLD).toDate();
-      let pool: Pool | undefined;
+      let pool: Pool | null = null;
 
       if (arg) {
-        pool = await poolRepository.findOne({name: arg});
+        pool = await poolRepository.findOneBy({name: arg});
         if (!pool) {
           this.bot.say(`Pool "${arg}" does not exist`);
           return;
@@ -72,7 +72,7 @@ export class PickCommand extends BaseCommand {
         let name = winner.nickname;
         let reason = "";
 
-        let maybePick = await this.pickRepository.findOne({pool: pool, user: winner});
+        let maybePick = await this.pickRepository.findOneBy({ pool: { name: pool.name }, user: { username: winner.username } });
 
         if (maybePick?.reserved) {
           if (maybePick.customName) {

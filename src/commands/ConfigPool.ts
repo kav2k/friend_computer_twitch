@@ -19,7 +19,7 @@ export class ConfigPoolCommand extends BaseCommand {
         const settingKey = match[2];
         const settingValue = match[3];
 
-        const pool = await poolRepository.findOne({name: poolName});
+        const pool = await poolRepository.findOneBy({name: poolName});
 
         if (pool) {
             switch(settingKey) {

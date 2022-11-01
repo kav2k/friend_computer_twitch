@@ -36,7 +36,7 @@ export class SetNameCommand extends BaseCommand {
       }
 
       if (user && user.eligible) {
-        let pick = await this.pickRepository.findOne({user: user, pool: pool})
+        let pick = await this.pickRepository.findOneBy({user: {username: user.username}, pool: {name: pool.name}})
         if (pick?.picked) {
           this.bot.say(`User ${targetNickname} was already picked for the ${pool.prettyName} pool`);
         } else {

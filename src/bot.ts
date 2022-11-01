@@ -103,7 +103,7 @@ export class Bot {
 
     // Else, try to load it - first one in the table, it's supposed to be a singleton
     const settingsRepository = getRepository(Settings);
-    let settings = await settingsRepository.findOne();
+    let settings = await settingsRepository.findOne({});
 
     if (settings) {
       // We found existing settings - use them
@@ -121,7 +121,7 @@ export class Bot {
     // Force-load settings from the DB
 
     const settingsRepository = getRepository(Settings);
-    let settings = await settingsRepository.findOne();
+    let settings = await settingsRepository.findOne({});
 
     if (settings) {
       // We found existing settings - use them
@@ -235,10 +235,10 @@ export class Bot {
     const nickname = msg.tags.displayName || msg.username;
     const id = msg.tags.userId;
 
-    let user: User | undefined;
+    let user: User | null = null;
 
     if (id) {
-      user = await userRepository.findOne({id});
+      user = await userRepository.findOneBy({id});
     }
 
     if (user) {
@@ -248,7 +248,7 @@ export class Bot {
         const oldUser = user;
         let newUser: User;
 
-        const userByName = await userRepository.findOne({username});
+        const userByName = await userRepository.findOneBy({username});
         if (userByName) {
           // Had a user with that username already; just update the ID, leave other data intact
           userByName.id = oldUser.id;
@@ -261,7 +261,7 @@ export class Bot {
         await userRepository.save(newUser);
 
         // Update all pick records to use the new user
-        const oldPicks = await pickRepository.find({user: oldUser});
+        const oldPicks = await pickRepository.find({where: {user: {username: oldUser.username}}});
         const updatedPicks = oldPicks.map(pick => { pick.user = newUser; return pick; });
         await pickRepository.save(updatedPicks);
 
@@ -272,7 +272,7 @@ export class Bot {
       user.nickname = nickname;
     } else {
       // There was no user with that ID; preload in case there's a user with that username
-      user = await userRepository.preload({username, id, nickname});
+      user = await userRepository.preload({username, id, nickname}) ?? null;
     }
 
     if (user) {

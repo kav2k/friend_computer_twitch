@@ -34,7 +34,7 @@ export class NameCommand extends BaseCommand {
     const user = await userRepository.preload({username});
 
     if (user && user.eligible) {
-      const maybePick = await this.pickRepository.findOne({pool: pool, user: user});
+      const maybePick = await this.pickRepository.findOneBy({ pool: { name: pool.name }, user: { username: user.username } });
 
       if (maybePick?.picked) {
         this.bot.queueUpdate(`Name already picked in the ${pool.prettyName} pool on ${moment(maybePick.pickedDate).format("YYYY-MM-DD")} for:`, nickname);
