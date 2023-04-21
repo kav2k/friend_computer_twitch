@@ -103,7 +103,7 @@ export class Bot {
 
     // Else, try to load it - first one in the table, it's supposed to be a singleton
     const settingsRepository = getRepository(Settings);
-    let settings = await settingsRepository.findOne({});
+    let settings = await settingsRepository.findOneBy({});
 
     if (settings) {
       // We found existing settings - use them
@@ -121,7 +121,7 @@ export class Bot {
     // Force-load settings from the DB
 
     const settingsRepository = getRepository(Settings);
-    let settings = await settingsRepository.findOne({});
+    let settings = await settingsRepository.findOneBy({});
 
     if (settings) {
       // We found existing settings - use them
