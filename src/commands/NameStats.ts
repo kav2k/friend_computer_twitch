@@ -3,6 +3,7 @@ import { BaseCommand } from "./BaseCommand";
 import moment from "moment";
 import { ACTIVE_THRESHOLD } from "../bot";
 import { Brackets } from "typeorm";
+import { Pool } from "../db/entities/Pool";
 
 export class NameStatsCommand extends BaseCommand {
   public readonly name = "namestats";
@@ -12,13 +13,36 @@ export class NameStatsCommand extends BaseCommand {
 
   public async run(msg: PrivateMessage): Promise<void> {
     const userRepository = this.userRepository;
+    const poolRepository = this.poolRepository;
+    const settings = await this.bot.getSettings();
 
-    const { isElevated } = this.parse(msg);
+    const { arg, isElevated } = this.parse(msg);
 
     if (isElevated || (!(this.last_invocation) || (Date.now() - this.last_invocation.getTime()) >= this.cooldown)) {
       this.last_invocation = new Date();
 
       const cutoff = moment(msg.timestamp).subtract(ACTIVE_THRESHOLD).toDate();
+
+      // TODO NEEDS FIXING, WIP
+
+      // let pool: Pool | undefined;
+
+      // if (arg) {
+      //   pool = await poolRepository.findOne({name: arg});
+      //   if (!pool) {
+      //     this.bot.say(`Pool "${arg}" does not exist`);
+      //     return;
+      //   }
+      // } else {
+      //   if (settings.currentPool) {
+      //     pool = settings.currentPool;
+      //   } else {
+      //     this.bot.say(`Can't pick, no pool is currently active`);
+      //     return;
+      //   }
+      // }
+
+      // let users: User[];
 
       const users = await userRepository
         .createQueryBuilder("user")
