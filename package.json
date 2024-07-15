@@ -8,7 +8,7 @@
     "consola": "^2.15.3",
     "moment": "^2.29.1",
     "pg": "^8.6.0",
-    "pm2": "^5.1.0",
+    "pm2": "^5.4.2",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10",
     "twitch-js": "^2.0.0-beta.44",
