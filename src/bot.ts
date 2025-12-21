@@ -143,9 +143,9 @@ export class Bot {
     await this.connection?.close();
 
     if (stayDead) {
-      process.exit(1);
+      process.exit(0);
     } else {
-      process.exit();
+      process.exit(1);
     }
   }
 
