@@ -195,7 +195,7 @@ export class Bot {
 
   private async outputQueue(): Promise<void> {
     if (this.updates.size) {
-      const [update, usernames]: [string, string[]] = this.updates.entries().next().value;
+      const [update, usernames]: [string, string[]] = this.updates.entries().next().value!;
       let lastIndex = 0;
       let message = update;
 

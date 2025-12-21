@@ -1,21 +1,21 @@
 {
   "name": "friend-computer-twitch",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Twitch Bot for Kikoskia's channel",
   "main": "dist/index.js",
   "dependencies": {
-    "axios": "^1.6.8",
+    "axios": "^1.9.0",
     "consola": "^2.15.3",
     "moment": "^2.29.1",
     "pg": "^8.6.0",
-    "pm2": "^5.4.2",
+    "pm2": "^6.0.14",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10",
     "twitch-js": "^2.0.0-beta.44",
     "typeorm": "^0.3"
   },
   "devDependencies": {
-    "@types/node": "^16.4.0",
+    "@types/node": "^22",
     "@types/pino": "^6",
     "@types/qs": "^6.9.7",
     "tslint": "^6",
@@ -36,7 +36,7 @@
     "twitch",
     "bot"
   ],
-  "author": "Alexander Kashev <kav2k@ya.ru>",
+  "author": "Alexander Kashev <alexander.kashev@outlook.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kav2k/friend_computer_twitch/issues"

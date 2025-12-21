@@ -1,6 +1,5 @@
 import { PrivateMessage } from "twitch-js";
 import { BaseCommand } from "./BaseCommand";
-import { getRepository } from "typeorm";
 import { Pool, PoolType } from "../db/entities/Pool";
 
 export class ConfigPoolCommand extends BaseCommand {

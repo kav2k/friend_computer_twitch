@@ -3,7 +3,7 @@ import { BaseCommand } from "./BaseCommand";
 import moment from "moment";
 import { ACTIVE_THRESHOLD } from "../bot";
 import { Brackets } from "typeorm";
-import { Pool } from "../db/entities/Pool";
+import { Pool, PoolType } from "../db/entities/Pool";
 
 export class NameStatsCommand extends BaseCommand {
   public readonly name = "namestats";
@@ -22,6 +22,13 @@ export class NameStatsCommand extends BaseCommand {
       this.last_invocation = new Date();
 
       const cutoff = moment(msg.timestamp).subtract(ACTIVE_THRESHOLD).toDate();
+
+      if (!settings.currentPool) {
+        this.bot.say("No name pool is currently active, cannot check name stats!");
+        return;
+      }
+
+      const pool: Pool = settings.currentPool;
 
       // TODO NEEDS FIXING, WIP
 
@@ -43,6 +50,27 @@ export class NameStatsCommand extends BaseCommand {
       // }
 
       // let users: User[];
+
+      let picksQuery = userRepository
+        .createQueryBuilder("user")
+        .leftJoinAndSelect("user.picks", "pick", "pick.pool = :pool", { pool: pool.name })
+        .where("user.eligible");
+      
+      // switch (pool.type) {
+      //   case PoolType.ACTIVE_ONLY:
+      //     candidates = await notPickedQuery
+      //       .andWhere("user.lastActive >= :cutoff", { cutoff })
+      //       .getMany();
+      //     break;
+      //   case PoolType.CLASSIC:
+      //   default:
+      //     candidates = await notPickedQuery
+      //       .andWhere(new Brackets((qb) => {
+      //         qb.where("user.lastActive >= :cutoff", { cutoff })
+      //           .orWhere("pick.reserved");
+      //       }))
+      //       .getMany();
+      // }
 
       const users = await userRepository
         .createQueryBuilder("user")
