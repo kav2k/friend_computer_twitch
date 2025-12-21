@@ -1,5 +1,4 @@
 import moment from "moment";
-import * as PM2 from "pm2";
 import TwitchJs, { Api, Chat, PrivateMessage, PrivateMessages } from "twitch-js";
 import { Connection, createConnection, getRepository } from "typeorm";
 import { User } from "./db/entities/User";
@@ -144,9 +143,7 @@ export class Bot {
     await this.connection?.close();
 
     if (stayDead) {
-      PM2.stop("friend_computer_twitch", () => {
-        process.exit();
-      });
+      process.exit(1);
     } else {
       process.exit();
     }
