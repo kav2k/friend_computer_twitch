@@ -1,16 +1,15 @@
 {
+  "extends": "@tsconfig/node24/tsconfig.json",
   "compileOnSave": true,
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2018",
+    "types": [
+      "node"
+    ],
     "sourceMap": true,
     "rootDir": "src",
     "outDir": "dist",
 
-    "strict": true,
-
     "resolveJsonModule": true,
-    "esModuleInterop": true,
 
     // TypeORM requirement
     "emitDecoratorMetadata": true,
