@@ -10,7 +10,7 @@
     "reflect-metadata": "^0.2.2",
     "ts-node": "^10",
     "twitch-js": "^2.0.0-beta.45",
-    "typeorm": "^0.3"
+    "typeorm": "^0.3.28"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
